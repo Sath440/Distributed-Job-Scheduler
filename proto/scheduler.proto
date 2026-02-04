@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package scheduler.v1;
+
+option go_package = "distributed-job-scheduler/pkg/pb;schedulerpb";
+
+message JobNode {
+  string id = 1;
+  string name = 2;
+  string command = 3;
+  int32 retries = 4;
+  int32 timeout_seconds = 5;
+  string idempotency_key = 6;
+  repeated string depends_on = 7;
+}
+
+message JobDefinition {
+  string name = 1;
+  repeated JobNode nodes = 2;
+}
+
+message SubmitJobRequest {
+  JobDefinition job = 1;
+}
+
+message SubmitJobResponse {
+  string job_id = 1;
+}
+
+message GetTaskRequest {
+  string worker_id = 1;
+  string task_id = 2;
+}
+
+message GetTaskResponse {
+  string job_id = 1;
+  string node_id = 2;
+  string command = 3;
+  int32 timeout_seconds = 4;
+  int32 attempt = 5;
+}
+
+message ReportTaskResultRequest {
+  string worker_id = 1;
+  string job_id = 2;
+  string node_id = 3;
+  bool success = 4;
+  string output = 5;
+  int32 attempt = 6;
+}
+
+message ReportTaskResultResponse {
+  string status = 1;
+}
+
+service SchedulerService {
+  rpc SubmitJob(SubmitJobRequest) returns (SubmitJobResponse);
+  rpc GetTask(GetTaskRequest) returns (GetTaskResponse);
+  rpc ReportTaskResult(ReportTaskResultRequest) returns (ReportTaskResultResponse);
+}
